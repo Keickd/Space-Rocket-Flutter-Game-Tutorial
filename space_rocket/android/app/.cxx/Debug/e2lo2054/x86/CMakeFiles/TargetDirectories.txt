@@ -1,0 +1,2 @@
+C:/Users/keick/Desktop/game_test/space_rocket/android/app/.cxx/Debug/e2lo2054/x86/CMakeFiles/edit_cache.dir
+C:/Users/keick/Desktop/game_test/space_rocket/android/app/.cxx/Debug/e2lo2054/x86/CMakeFiles/rebuild_cache.dir
