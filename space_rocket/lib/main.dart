@@ -5,6 +5,7 @@ import 'package:space_rocket/overlays/game_over_overlay.dart';
 import 'package:space_rocket/overlays/title_overlay.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   final MyGame game = MyGame();
 
   runApp(GameWidget(

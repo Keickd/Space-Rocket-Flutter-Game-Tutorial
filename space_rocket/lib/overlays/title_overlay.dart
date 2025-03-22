@@ -61,6 +61,7 @@ class _TitleOverlayState extends State<TitleOverlay> {
               children: [
                 GestureDetector(
                   onTap: () {
+                    widget.game.audioManager.playSound('click');
                     setState(() {
                       widget.game.playerColorIndex--;
                       if (widget.game.playerColorIndex < 0) {
@@ -89,6 +90,7 @@ class _TitleOverlayState extends State<TitleOverlay> {
                 ),
                 GestureDetector(
                   onTap: () {
+                    widget.game.audioManager.playSound('click');
                     setState(() {
                       widget.game.playerColorIndex++;
                       if (widget.game.playerColorIndex ==
@@ -109,6 +111,7 @@ class _TitleOverlayState extends State<TitleOverlay> {
             ),
             GestureDetector(
               onTap: () {
+                widget.game.audioManager.playSound('start');
                 widget.game.startGame();
                 setState(() {
                   _opacity = 0.0;
@@ -118,7 +121,51 @@ class _TitleOverlayState extends State<TitleOverlay> {
                 width: 200,
                 child: Image.asset('assets/images/start_button.png'),
               ),
-            )
+            ),
+            Expanded(
+                child: Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          widget.game.audioManager.toggleMusic();
+                        });
+                      },
+                      icon: Icon(
+                        widget.game.audioManager.musicEnabled
+                            ? Icons.music_note_rounded
+                            : Icons.music_off_rounded,
+                        color: widget.game.audioManager.musicEnabled
+                            ? Colors.white
+                            : Colors.grey,
+                        size: 30,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          widget.game.audioManager.toggleAudio();
+                        });
+                      },
+                      icon: Icon(
+                        widget.game.audioManager.soundEnabled
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_off_rounded,
+                        color: widget.game.audioManager.soundEnabled
+                            ? Colors.white
+                            : Colors.grey,
+                        size: 30,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ))
           ],
         ),
       ),

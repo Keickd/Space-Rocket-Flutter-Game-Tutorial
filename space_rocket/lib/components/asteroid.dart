@@ -65,6 +65,7 @@ class Asteroid extends SpriteComponent with HasGameReference<MyGame> {
   }
 
   void takeDamage() {
+    game.audioManager.playSound('hit');
     _health--;
 
     if (_health == 0) {

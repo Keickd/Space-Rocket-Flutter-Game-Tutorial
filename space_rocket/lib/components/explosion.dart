@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
@@ -11,17 +10,19 @@ import 'package:space_rocket/my_game.dart';
 enum ExplosionType { dust, smoke, fire }
 
 class Explosion extends PositionComponent with HasGameReference<MyGame> {
-
   final ExplosionType explosionType;
   final double explosionSize;
   final Random _random = Random();
 
-  Explosion({required super.position,
-  required this.explosionSize,
-  required this. explosionType});
+  Explosion(
+      {required super.position,
+      required this.explosionSize,
+      required this.explosionType});
 
   @override
   FutureOr<void> onLoad() {
+    final int num = 1 + _random.nextInt(2);
+    game.audioManager.playSound('explode$num');
 
     _createFlash();
     _createParticles();
@@ -40,7 +41,6 @@ class Explosion extends PositionComponent with HasGameReference<MyGame> {
 
     final OpacityEffect fadeOutEffect = OpacityEffect.fadeOut(EffectController(
       duration: 0.3,
-
     ));
 
     flash.add(fadeOutEffect);
@@ -48,7 +48,7 @@ class Explosion extends PositionComponent with HasGameReference<MyGame> {
   }
 
   List<Color> _generateColors() {
-    switch(explosionType) {
+    switch (explosionType) {
       case ExplosionType.dust:
         return [
           const Color(0xFF5A4632),
@@ -74,27 +74,22 @@ class Explosion extends PositionComponent with HasGameReference<MyGame> {
     final List<Color> colors = _generateColors();
 
     final ParticleSystemComponent particles = ParticleSystemComponent(
-      particle: Particle.generate(count: 8 + _random.nextInt(5),
-        generator: (index) {
-          return MovingParticle(
+        particle: Particle.generate(
+      count: 8 + _random.nextInt(5),
+      generator: (index) {
+        return MovingParticle(
             child: CircleParticle(
               paint: Paint()
-              ..color = colors[_random.nextInt(colors.length)].withValues(
-                alpha: 0.4 + _random.nextDouble() * 0.4
-              ), 
+                ..color = colors[_random.nextInt(colors.length)]
+                    .withValues(alpha: 0.4 + _random.nextDouble() * 0.4),
               radius: explosionSize * (0.1 + _random.nextDouble() * 0.05),
-            ), 
-          to: Vector2(
-            (_random.nextDouble() - 0.5) * explosionSize * 2, 
-            (_random.nextDouble() - 0.5) * explosionSize * 2
-          ),
-          lifespan: 0.5 + _random.nextDouble() * 0.5
-        );
-        },
-      )
-    ); 
+            ),
+            to: Vector2((_random.nextDouble() - 0.5) * explosionSize * 2,
+                (_random.nextDouble() - 0.5) * explosionSize * 2),
+            lifespan: 0.5 + _random.nextDouble() * 0.5);
+      },
+    ));
 
     add(particles);
   }
-
 }

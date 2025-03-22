@@ -8,6 +8,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:space_rocket/components/asteroid.dart';
+import 'package:space_rocket/components/audio_manager.dart';
 import 'package:space_rocket/components/pickup.dart';
 import 'package:space_rocket/components/player.dart';
 import 'package:space_rocket/components/shoot_button.dart';
@@ -25,11 +26,17 @@ class MyGame extends FlameGame
   late TextComponent _scoreDisplay;
   final List<String> playerColors = ['blue', 'red', 'green', 'purple'];
   int playerColorIndex = 0;
+  late final AudioManager audioManager;
 
   @override
   FutureOr<void> onLoad() async {
     await Flame.device.fullScreen();
     await Flame.device.setPortrait();
+
+    // initialize the audio manager and play the music
+    audioManager = AudioManager();
+    await add(audioManager);
+    audioManager.playMusic();
 
     _createStars();
 
@@ -54,16 +61,18 @@ class MyGame extends FlameGame
 
   Future<void> _createJoystick() async {
     joystick = JoystickComponent(
-        knob: SpriteComponent(
-          sprite: await loadSprite('joystick_knob.png'),
-          size: Vector2.all(50),
-        ),
-        background: SpriteComponent(
-            sprite: await loadSprite('joystick_background.png'),
-            size: Vector2.all(100)),
-        anchor: Anchor.bottomLeft,
-        position: Vector2(20, size.y - 20),
-        priority: 10);
+      knob: SpriteComponent(
+        sprite: await loadSprite('joystick_knob.png'),
+        size: Vector2.all(50),
+      ),
+      background: SpriteComponent(
+        sprite: await loadSprite('joystick_background.png'),
+        size: Vector2.all(100),
+      ),
+      anchor: Anchor.bottomLeft,
+      position: Vector2(20, size.y - 20),
+      priority: 10,
+    );
     add(joystick);
   }
 
@@ -72,13 +81,12 @@ class MyGame extends FlameGame
       ..anchor = Anchor.bottomRight
       ..position = Vector2(size.x - 20, size.y - 20)
       ..priority = 10;
-
     add(_shootButton);
   }
 
   void _createAsteroidSpawner() {
     _asteroidSpawner = SpawnComponent.periodRange(
-      factory: (index) => Asteroid(position: _generateRandomPosition()),
+      factory: (index) => Asteroid(position: _generateSpawnPosition()),
       minPeriod: 0.7,
       maxPeriod: 1.2,
       selfPositioning: true,
@@ -89,7 +97,7 @@ class MyGame extends FlameGame
   void _createPickupSpawner() {
     _pickupSpawner = SpawnComponent.periodRange(
       factory: (index) => Pickup(
-        position: _generateRandomPosition(),
+        position: _generateSpawnPosition(),
         pickupType:
             PickupType.values[_random.nextInt(PickupType.values.length)],
       ),
@@ -100,8 +108,11 @@ class MyGame extends FlameGame
     add(_pickupSpawner);
   }
 
-  Vector2 _generateRandomPosition() {
-    return Vector2(10 + _random.nextDouble() * (size.x - 10 * 2), -100);
+  Vector2 _generateSpawnPosition() {
+    return Vector2(
+      10 + _random.nextDouble() * (size.x - 10 * 2),
+      -100,
+    );
   }
 
   void _createScoreDisplay() {
@@ -110,7 +121,7 @@ class MyGame extends FlameGame
     _scoreDisplay = TextComponent(
       text: '0',
       anchor: Anchor.topCenter,
-      position: Vector2(size.x / 2, 50),
+      position: Vector2(size.x / 2, 20),
       priority: 10,
       textRenderer: TextPaint(
         style: const TextStyle(
@@ -159,37 +170,44 @@ class MyGame extends FlameGame
   }
 
   void restartGame() {
-    children.whereType<PositionComponent>().forEach(
-      (element) {
-        if (element is Asteroid || element is Pickup) {
-          remove(element);
-        }
-      },
-    );
+    // remove any asteroids and pickups that are currently in the game
+    children.whereType<PositionComponent>().forEach((component) {
+      if (component is Asteroid ||
+          component is Pickup ||
+          component is Player ||
+          component is Star) {
+        remove(component);
+      }
+    });
 
+    // reset the asteroid and pickup spawners
     _asteroidSpawner.timer.start();
     _pickupSpawner.timer.start();
 
+    // reset the score to 0
     _score = 0;
     _scoreDisplay.text = '0';
 
+    // create a new player sprite
     _createPlayer();
 
     resumeEngine();
   }
 
   void quitGame() {
-    children.whereType<PositionComponent>().forEach(
-      (element) {
-        if (element is! Star) {
-          remove(element);
-        }
-      },
-    );
+    // remove everything from the game except the stars
+    children.whereType<PositionComponent>().forEach((component) {
+      if (component is! Star) {
+        remove(component);
+      }
+    });
 
     remove(_asteroidSpawner);
     remove(_pickupSpawner);
 
+    // show the title overlay
     overlays.add('Title');
+
+    resumeEngine();
   }
 }
