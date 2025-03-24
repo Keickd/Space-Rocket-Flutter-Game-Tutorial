@@ -1,8 +1,8 @@
 import 'package:brick_breaker/src/brick_breaker.dart';
 import 'package:brick_breaker/src/components/components.dart';
-import 'package:brick_breaker/src/components/play_area.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flutter/cupertino.dart';
 
 class Ball extends CircleComponent
@@ -11,6 +11,7 @@ class Ball extends CircleComponent
     required this.velocity,
     required super.position,
     required double radius,
+    required this.difficultyModifier,
   }) : super(
           radius: radius,
           anchor: Anchor.center,
@@ -21,6 +22,7 @@ class Ball extends CircleComponent
         );
 
   final Vector2 velocity;
+  final double difficultyModifier;
 
   @override
   void update(double dt) {
@@ -41,12 +43,30 @@ class Ball extends CircleComponent
       } else if (intersectionPoints.first.x >= game.width) {
         velocity.x = -velocity.x;
       } else if (intersectionPoints.first.y >= game.height) {
-        removeFromParent();
+        add(
+          RemoveEffect(
+            delay: 0.35,
+            onComplete: () {
+              game.playState = PlayState.gameOver;
+            },
+          ),
+        );
       }
     } else if (other is Bat) {
       velocity.y = -velocity.y;
       velocity.x = velocity.x +
           (position.x - other.position.x) / other.size.x * game.width * 0.3;
+    } else if (other is Brick) {
+      if (position.y < other.position.y - other.size.y / 2) {
+        velocity.y = -velocity.y;
+      } else if (position.y > other.position.y - other.size.y / 2) {
+        velocity.y = -velocity.y;
+      } else if (position.x < other.position.x) {
+        velocity.x = -velocity.x;
+      } else if (position.x > other.position.x) {
+        velocity.x = -velocity.x;
+      }
+      velocity.setFrom(velocity * difficultyModifier);
     } else {
       debugPrint('collision with $other');
     }
